@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -7,10 +7,16 @@ import {
   Legend
 } from "chart.js";
 import "./App.css";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
+import api from "./api";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [authView, setAuthView] = useState("login"); // "login" or "signup"
+  const [loading, setLoading] = useState(true);
   const [expenses, setExpenses] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [form, setForm] = useState({
@@ -21,14 +27,106 @@ function App() {
   });
   const [reminderText, setReminderText] = useState("");
 
+  // Check if user is already logged in
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/me", {
+        credentials: "include"
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+        // Fetch expenses after auth check
+        await fetchExpenses();
+      }
+    } catch (error) {
+      console.log("Not authenticated");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchExpenses = async () => {
+    try {
+      const response = await api.get("/expenses");
+      setExpenses(response.data);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+    }
+  };
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+  };
+
+  const handleSignup = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:5000/api/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+      setUser(null);
+      setExpenses([]);
+      setReminders([]);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login/signup if not authenticated
+  if (!user) {
+    if (authView === "login") {
+      return (
+        <Login 
+          onLogin={handleLogin}
+          onSwitchToSignup={() => setAuthView("signup")}
+        />
+      );
+    } else {
+      return (
+        <Signup 
+          onSignup={handleSignup}
+          onSwitchToLogin={() => setAuthView("login")}
+        />
+      );
+    }
+  }
+
   // Add expense
-  const addExpense = (e) => {
+  const addExpense = async (e) => {
     e.preventDefault();
-    setExpenses([
-      ...expenses,
-      { ...form, amount: Number(form.amount), id: Date.now() }
-    ]);
-    setForm({ title: "", amount: "", type: "expense", category: "" });
+    try {
+      const response = await api.post("/expenses", {
+        title: form.title,
+        amount: Number(form.amount),
+        type: form.type,
+        category: form.category
+      });
+      setExpenses([...expenses, response.data]);
+      setForm({ title: "", amount: "", type: "expense", category: "" });
+    } catch (error) {
+      console.error("Error adding expense:", error);
+      alert("Failed to add expense");
+    }
   };
 
   // Add reminder
@@ -74,8 +172,18 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Expense Manager</h1>
-        <p className="subtitle">Track your income, expenses, and monthly reminders</p>
+        <div className="header-content">
+          <div>
+            <h1>Expense Manager</h1>
+            <p className="subtitle">Track your income, expenses, and monthly reminders</p>
+          </div>
+          <div className="user-section">
+            <span className="user-email">{user.email}</span>
+            <button onClick={handleLogout} className="btn btn-logout">
+              Logout
+            </button>
+          </div>
+        </div>
       </header>
 
       <div className="container">
