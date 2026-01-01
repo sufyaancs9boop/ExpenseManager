@@ -37,7 +37,7 @@ function Login({ onLogin, onSwitchToSignup }) {
     <div className="auth-container">
       <div className="auth-card">
         <h1 className="auth-title">Welcome Back</h1>
-        <p className="auth-subtitle">Sign in to your Expense Manager account</p>
+        <p className="auth-subtitle">Sign in to your Expensify account</p>
 
         {error && <div className="error-message">{error}</div>}
 

@@ -164,7 +164,7 @@ function App() {
     datasets: [
       {
         data: [expenseTotal, Math.max(income - expenseTotal, 0)],
-        backgroundColor: ["#ff6b6b", "#4ecdc4"]
+        backgroundColor: ["#ff8a4c", "#5ce1e6"]
       }
     ]
   };
@@ -174,7 +174,7 @@ function App() {
       <header className="header">
         <div className="header-content">
           <div>
-            <h1>Expense Manager</h1>
+            <h1>Expensify</h1>
             <p className="subtitle">Track your income, expenses, and monthly reminders</p>
           </div>
           <div className="user-section">

@@ -48,7 +48,7 @@ function Signup({ onSignup, onSwitchToLogin }) {
     <div className="auth-container">
       <div className="auth-card">
         <h1 className="auth-title">Create Account</h1>
-        <p className="auth-subtitle">Start tracking your expenses today</p>
+        <p className="auth-subtitle">Start tracking with Expensify</p>
 
         {error && <div className="error-message">{error}</div>}
 
